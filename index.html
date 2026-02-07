@@ -25,14 +25,18 @@
     }
 
     @keyframes floatUp {
-      0% { transform: translateY(0); opacity: 1; }
-      100% { transform: translateY(-110vh); opacity: 0; }
+      to {
+        transform: translateY(-110vh);
+        opacity: 0;
+      }
     }
 
     .card {
+      position: relative;
+      width: 360px;
       text-align: center;
       background: white;
-      padding: 35px 45px;
+      padding: 35px 25px 70px;
       border-radius: 22px;
       box-shadow: 0 12px 30px rgba(0,0,0,0.25);
       z-index: 10;
@@ -44,23 +48,25 @@
     }
 
     button {
-      padding: 12px 26px;
+      padding: 12px 24px;
       font-size: 18px;
       border: none;
       border-radius: 30px;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: transform 0.2s ease;
     }
 
     #yes {
       background-color: #ff4d6d;
       color: white;
-      margin-right: 15px;
+      margin-right: 10px;
     }
 
     #no {
       background-color: #ccc;
       position: absolute;
+      left: 55%;
+      top: 65%;
     }
 
     .result {
@@ -69,86 +75,122 @@
       align-items: center;
       text-align: center;
       z-index: 10;
-    }
-
-    .result img {
-      max-width: 320px;
-      margin-top: 20px;
-      border-radius: 18px;
+      max-width: 420px;
     }
   </style>
 </head>
 <body>
 
+<!-- Background music -->
 <audio id="bgMusic" loop>
   <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_9c3e3a8c6c.mp3" type="audio/mpeg">
 </audio>
 
+<!-- Question -->
 <div class="card" id="questionCard">
   <h1 id="typedText"></h1>
   <button id="yes">Yes 😍</button>
   <button id="no">No 😅</button>
 </div>
 
+<!-- Result -->
 <div class="result" id="result">
   <h1>OMG 🤯</h1>
   <p>You said YES!!! 💘</p>
-  <img src="https://media.tenor.com/ZXw9.gif" alt="Mind Blown GIF">
+
+  <!-- Tenor embed (hidden until Yes) -->
+  <div id="tenorContainer" style="width:100%;">
+    <div
+      class="tenor-gif-embed"
+      data-postid="12344509"
+      data-share-method="host"
+      data-aspect-ratio="1.35606"
+      data-width="100%">
+      <a href="https://tenor.com/view/celebration-will-smith-price-de-bel-air-danser-bouger-gif-12344509">
+        Celebration GIF
+      </a>
+      from
+      <a href="https://tenor.com/search/celebration-gifs">
+        Celebration GIFs
+      </a>
+    </div>
+  </div>
 </div>
 
+<!-- Tenor embed script -->
+<script async src="https://tenor.com/embed.js"></script>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 <script>
+  /* Typewriter */
   const text = "Kavya, will you be my Valentine? 💖";
-  let index = 0;
-  const typedText = document.getElementById("typedText");
-
-  function typeEffect() {
-    if (index < text.length) {
-      typedText.innerHTML += text.charAt(index);
-      index++;
-      setTimeout(typeEffect, 70);
+  let i = 0;
+  const typed = document.getElementById("typedText");
+  (function type() {
+    if (i < text.length) {
+      typed.innerHTML += text.charAt(i++);
+      setTimeout(type, 70);
     }
-  }
-  typeEffect();
+  })();
 
+  /* Music */
   const music = document.getElementById("bgMusic");
-  let musicStarted = false;
+  let started = false;
   document.addEventListener("click", () => {
-    if (!musicStarted) {
+    if (!started) {
       music.play();
-      musicStarted = true;
+      started = true;
     }
   });
 
-  function createHeart() {
-    const heart = document.createElement("div");
-    heart.className = "heart";
-    heart.innerHTML = "💕";
-    heart.style.left = Math.random() * 100 + "vw";
-    heart.style.fontSize = (16 + Math.random() * 24) + "px";
-    heart.style.animationDuration = (4 + Math.random() * 4) + "s";
-    document.body.appendChild(heart);
-    setTimeout(() => heart.remove(), 7000);
-  }
-  setInterval(createHeart, 400);
+  /* Floating hearts */
+  setInterval(() => {
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.innerHTML = "💕";
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.fontSize = 16 + Math.random() * 24 + "px";
+    h.style.animationDuration = 4 + Math.random() * 4 + "s";
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 7000);
+  }, 400);
 
+  /* Buttons */
   const noBtn = document.getElementById("no");
   const yesBtn = document.getElementById("yes");
   const card = document.getElementById("questionCard");
-  const result = document.getElementById("result");
 
-  let scale = 1;
+  let noScale = 1;
+  let yesScale = 1;
+
   noBtn.addEventListener("mouseover", () => {
-    scale -= 0.08;
-    noBtn.style.transform = `scale(${scale})`;
-    noBtn.style.left = Math.random() * (window.innerWidth - 100) + "px";
-    noBtn.style.top = Math.random() * (window.innerHeight - 50) + "px";
+    noScale = Math.max(0.3, noScale - 0.08);
+    noBtn.style.transform = `scale(${noScale})`;
+
+    yesScale = Math.min(1.8, yesScale + 0.07);
+    yesBtn.style.transform = `scale(${yesScale})`;
+
+    const maxX = card.clientWidth - noBtn.offsetWidth;
+    const maxY = card.clientHeight - noBtn.offsetHeight;
+    noBtn.style.left = Math.random() * maxX + "px";
+    noBtn.style.top = Math.random() * maxY + "px";
   });
 
+  /* Yes click */
   yesBtn.addEventListener("click", () => {
+    confetti({
+      particleCount: 200,
+      spread: 100,
+      origin: { y: 0.6 }
+    });
+
     card.style.display = "none";
-    result.style.display = "flex";
+    document.getElementById("result").style.display = "flex";
   });
 </script>
 
 </body>
 </html>
+
